@@ -1,10 +1,21 @@
+import { Link } from "react-router-dom"
+
 export default function Header() {
   return (
     <header className="header">
       <button>Salamander Tracker</button>
-      <button>Home</button>
-      <button>Preview Processing</button>
-      <button className="search-btn">Search</button>
+
+      <Link to="/">
+        <button>Home</button>
+      </Link>
+
+      <Link to="/processing">
+        <button>Preview Processing</button>
+      </Link>
+
+      <Link to="/search">
+        <button>Search</button>
+      </Link>
     </header>
   )
 }
