@@ -33,6 +33,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 export async function getVideos() {
   await delay(400)
   return videos
+// throw new Error("server unavailable");
 }
 
 export async function getThumbnail(filename) {
