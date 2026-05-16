@@ -5,11 +5,11 @@ const videos = [
   "salamander2.mov",
   "forest_intro.mp4",
   "tank_view_long.mp4",
-   "lake_clip.mp4",
-   "night_vision.mov",
-   "frog_closeup.mp4",
-   "desert_walk.mp4",
-];
+  "lake_clip.mp4",
+  "night_vision.mov",
+  "frog_closeup.mp4",
+  "desert_walk.mp4",
+]
 
 const thumbnails = {
   // Map filename -> URL of an image to use as its thumbnail.
@@ -22,39 +22,39 @@ const thumbnails = {
   "night_vision.mov": "https://placehold.co/320x180?text=night_vision",
   "frog_closeup.mp4": "https://placehold.co/320x180?text=frog_closeup",
   "desert_walk.mp4": "https://placehold.co/320x180?text=desert_walk",
-  
-};
+
+}
 
 // Tiny helper that adds a fake delay so loading states are visible
 // during development. Real networks aren't instant; pretending they
 // are will hide UI bugs.
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function getVideos() {
-  await delay(400);
-  return videos;
+  await delay(400)
+  return videos
 }
 
 export async function getThumbnail(filename) {
-  await delay(300);
+  await delay(300)
   if (!thumbnails[filename]) {
-    throw new Error(`No thumbnail for ${filename}`);
+    throw new Error(`No thumbnail for ${filename}`)
   }
-  return thumbnails[filename];
+  return thumbnails[filename]
 }
 
 export async function submitProcessingJob(filename, targetColor, threshold) {
-  await delay(500);
+  await delay(500)
   // Pretend the server gave us a job id.
-  return { jobId: `mock-${Date.now()}` };
+  return { jobId: `mock-${Date.now()}` }
 }
 
 export async function getJobStatus(jobId) {
-  await delay(300);
+  await delay(300)
   // Pretend the job finished successfully.
   return {
     jobId,
     status: "complete",
     csvUrl: "https://example.com/results.csv",
-  };
+  }
 }
