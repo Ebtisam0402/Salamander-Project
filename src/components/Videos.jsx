@@ -23,19 +23,22 @@ export default function Videos() {
    })
  }, [])
  if (loading) {
-  return <p>Loading videos...</p>
+  return <p className="p-6 text-xl">Loading videos...</p>
  }
  if (error) {
-  return <p>Could not load videos: {error}</p>
+  return <p className="p-6 text-red-500">Could not load videos: {error}</p>
  }
  return (
-  <div>
-   <h1>Available Videos</h1>
-   <ul>
+  <div className="min-h-screen bg-green-100 p-6">
+   <h1 className="text-4xl font-bold text-blue-600 mb-6">Available Videos</h1>
+   <ul className="flex flex-wrap gap-4">
     {videos.map((filename) => (
-     <li key={filename}>
+     <li key={filename}
+      className="inline-block bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition-shadow"
+     >
 
-      <Link to={`/preview/${filename}`}>{filename}</Link>
+      <Link to={`/preview/${filename}`}
+       className="text-lg font-medium text-blue-700 hover:text-blue-900 hover:underline">{filename}</Link>
 
      </li>
 
