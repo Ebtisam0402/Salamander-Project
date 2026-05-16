@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react"
 import { getVideos } from "../mockApi.js"
+import { Link } from "react-router-dom"
 //import { data } from "react-router-dom"
 
 
@@ -16,23 +17,28 @@ export default function Videos() {
    setLoading(false)
 
   })
-  .catch((err) => {
+   .catch((err) => {
     setError(err.message)
     setLoading(false)
-  })
+   })
  }, [])
  if (loading) {
   return <p>Loading videos...</p>
  }
- if(error) {
-    return <p>Could not load videos: {error}</p>
+ if (error) {
+  return <p>Could not load videos: {error}</p>
  }
  return (
   <div>
    <h1>Available Videos</h1>
    <ul>
     {videos.map((filename) => (
-     <li key={filename}>{filename}</li>
+     <li key={filename}>
+
+      <Link to={`/preview/${filename}`}>{filename}</Link>
+
+     </li>
+
     ))}
    </ul>
 
