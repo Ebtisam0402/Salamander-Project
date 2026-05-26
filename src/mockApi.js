@@ -37,7 +37,7 @@ export async function getVideos() {
 }
 
 export async function getThumbnail(filename) {
-  await delay(2000)
+  await delay(300)
   if (!thumbnails[filename]) {
     throw new Error(`No thumbnail for ${filename}`)
   }
