@@ -17,7 +17,13 @@ export default function Preview() {
   const imgRef = useRef(null)
   const [imageReady, setImageReady] = useState(false)
 
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
 
+    return { r, g, b }
+  }
 
   useEffect(() => {
     getThumbnail(filename)
@@ -46,16 +52,54 @@ export default function Preview() {
 
   useEffect(() => {
     // console.log('redrawing')
-  if (!imageReady) return;
-  const img = imgRef.current;
-  const canvas = canvasRef.current;
-  if (!img || !canvas) return;
+    if (!imageReady) return
+    const img = imgRef.current
+    const canvas = canvasRef.current
+    if (!img || !canvas) return
 
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-}, [imageReady, color, tolerance]);
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, 0, 0)
+
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const px = data.data
+
+    const targetR = parseInt(color.slice(1, 3), 16)
+    const targetG = parseInt(color.slice(3, 5), 16)
+    const targetB = parseInt(color.slice(5, 7), 16)
+
+    for (let i = 0; i < px.length; i += 4) {
+
+      const red = px[i]
+      const green = px[i + 1]
+      const blue = px[i + 2]
+
+      const redDiff = Math.abs(red - targetR)
+      const greenDiff = Math.abs(green - targetG)
+      const blueDiff = Math.abs(blue - targetB)
+
+      const distance = redDiff + greenDiff + blueDiff
+
+      if (distance <= tolerance) {
+        px[i] = 0
+        px[i + 1] = 0
+        px[i + 2] = 0
+      } else {
+        px[i] = 255
+        px[i + 1] = 255
+        px[i + 2] = 255
+      }
+    }
+
+
+
+
+    ctx.putImageData(data, 0, 0)
+
+
+
+  }, [imageReady, color, tolerance])
 
 
   if (error) {
@@ -111,7 +155,7 @@ export default function Preview() {
             <input
               type="range"
               min="0"
-              max="255"
+              max="765"
               value={tolerance}
               onChange={handleToleranceChange}
               className="w-full"
