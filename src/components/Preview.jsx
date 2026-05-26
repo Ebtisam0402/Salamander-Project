@@ -44,6 +44,19 @@ export default function Preview() {
     img.src = thumbnail
   }, [thumbnail])
 
+  useEffect(() => {
+    // console.log('redrawing')
+  if (!imageReady) return;
+  const img = imgRef.current;
+  const canvas = canvasRef.current;
+  if (!img || !canvas) return;
+
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+}, [imageReady, color, tolerance]);
+
 
   if (error) {
     return (
@@ -70,12 +83,6 @@ export default function Preview() {
 
 
   }
-
-
-
-
-
-
 
   return (
     <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center">
