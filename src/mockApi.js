@@ -37,7 +37,10 @@ export async function getVideos() {
 }
 
 export async function getThumbnail(filename) {
-  await delay(300)
+  await delay(2000)
+  //  if (filename === "salamander1.mp4") {
+  //   throw new Error("Thumbnail failed to load")
+  //  }
   if (!thumbnails[filename]) {
     throw new Error(`No thumbnail for ${filename}`)
   }
