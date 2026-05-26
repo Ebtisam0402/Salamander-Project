@@ -14,6 +14,9 @@ export default function Preview() {
 
   const canvasRef = useRef(null)
 
+  const imgRef = useRef(null)
+  const [imageReady, setImageReady] = useState(false)
+
 
 
   useEffect(() => {
@@ -28,6 +31,19 @@ export default function Preview() {
         setLoading(false)
       })
   }, [filename])
+  useEffect(() => {
+    if (!thumbnail) return
+    setImageReady(false)
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      imgRef.current = img
+      setImageReady(true)
+      // console.log('image loaded:', imgRef.current.naturalWidth, 'x', imgRef.current.naturalHeight)
+    }
+    img.src = thumbnail
+  }, [thumbnail])
+
 
   if (error) {
     return (
@@ -35,11 +51,6 @@ export default function Preview() {
         Could not load thumbnail: {error}
       </p>
     )
-  }
-
-  // EARLY RETURN FOR LOADING
-  if (loading) {
-    return <p>Loading thumbnail...</p>
   }
 
   function handleColorChange(e) {
@@ -51,6 +62,19 @@ export default function Preview() {
     setTolerance(e.target.value)
     console.log("Tolerance:", e.target.value)
   }
+
+
+  // EARLY RETURN FOR LOADING
+  if (loading) {
+    return <p>Loading thumbnail...</p>
+
+
+  }
+
+
+
+
+
 
 
   return (
@@ -97,9 +121,9 @@ export default function Preview() {
         />
 
         <canvas
-            ref={canvasRef}
-            className="border border-slate-400 rounded-xl w-full h-64"
-            />
+          ref={canvasRef}
+          className="border border-slate-400 rounded-xl w-full h-64"
+        />
 
         <Link to="/videos"
           className="inline-block bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors">
