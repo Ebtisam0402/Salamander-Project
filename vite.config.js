@@ -8,9 +8,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:3000',
-      '/thumbnail': 'http://localhost:3000/videos',
+      '/thumbnail': 'http://localhost:3000',
       '/process': 'http://localhost:3000',
-      '/results': 'http://localhost:3000/results',
+      '/results': 'http://localhost:3000',
     },
   },
 })
