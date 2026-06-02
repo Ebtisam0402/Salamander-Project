@@ -7,6 +7,7 @@ export async function getVideos() {
 }
 
 export async function getThumbnail(filename) {
+     console.log("filename:", filename)
   const url = `/thumbnail/${filename}`;
   const res = await fetch(url);
   if (!res.ok) {
