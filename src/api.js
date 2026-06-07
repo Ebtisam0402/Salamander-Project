@@ -7,7 +7,8 @@ export async function getVideos() {
 }
 
 export async function getThumbnail(filename) {
-  const url = `/thumbnail/${filename}`
+  //const url = `/thumbnail/${filename}`
+  const url = `/videos/${filename}`
   const res = await fetch(url)
   if (!res.ok) {
     throw new Error(`No thumbnail for ${filename}`)

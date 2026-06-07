@@ -14,7 +14,10 @@ export default function Preview() {
 
   const canvasRef = useRef(null)
 
-  const imgRef = useRef(null)
+  // const imgRef = useRef(null)
+  // const [imageReady, setImageReady] = useState(false)
+
+  const videoRef = useRef(null)
   const [imageReady, setImageReady] = useState(false)
 
   function hexToRgb(hex) {
@@ -36,31 +39,47 @@ export default function Preview() {
         setError(err.message)
         setLoading(false)
       })
+
   }, [filename])
-  useEffect(() => {
-    if (!thumbnail) return
-    setImageReady(false)
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      imgRef.current = img
-      setImageReady(true)
-      // console.log('image loaded:', imgRef.current.naturalWidth, 'x', imgRef.current.naturalHeight)
-    }
-    img.src = thumbnail
-  }, [thumbnail])
+  // useEffect(() => {
+  //   if (!thumbnail) return
+  //   setImageReady(false)
+  //   const img = new Image()
+  //   img.crossOrigin = 'anonymous'
+  //   img.onload = () => {
+  //     imgRef.current = img
+  //     setImageReady(true)
+  //     // console.log('image loaded:', imgRef.current.naturalWidth, 'x', imgRef.current.naturalHeight)
+  //   }
+  //   img.src = thumbnail
+  // }, [thumbnail])
 
   useEffect(() => {
     // console.log('redrawing')
     if (!imageReady) return
-    const img = imgRef.current
+    //const img = imgRef.current
+    const img = videoRef.current
+
+    const video = videoRef.current
     const canvas = canvasRef.current
     if (!img || !canvas) return
 
-    canvas.width = img.naturalWidth
-    canvas.height = img.naturalHeight
+    if (!video.videoWidth || !video.videoHeight) return
+
+    // canvas.width = img.naturalWidth
+    // canvas.height = img.naturalHeight
+
+    //canvas.width = img.videoWidth
+    //canvas.height = img.videoHeight
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+
     const ctx = canvas.getContext('2d')
-    ctx.drawImage(img, 0, 0)
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    // const ctx = canvas.getContext('2d')
+    // ctx.drawImage(img, 0, 0)
 
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
     const px = data.data
@@ -91,10 +110,6 @@ export default function Preview() {
         px[i + 2] = 255
       }
     }
-
-
-
-
     ctx.putImageData(data, 0, 0)
 
 
@@ -130,7 +145,7 @@ export default function Preview() {
 
   return (
     <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center">
-      <div className="bg-white shadow-xl rounded-2xl p-8 max-w-2xl w-full">
+      <div className="bg-white shadow-xl rounded-2xl p-8 max-w-6xl w-full">
         <h1 className="text-4xl font-bold text-blue-700 mb-4">Preview: {filename}</h1>
 
         <div className="mb-6 flex flex-col gap-4">
@@ -139,6 +154,7 @@ export default function Preview() {
             <label className="block font-semibold mb-2">
               Pick Color
             </label>
+            <p>{thumbnail}</p>
 
             <input
               type="color"
@@ -165,7 +181,7 @@ export default function Preview() {
         </div>
 
 
-        <img
+        {/* <img
           className="rounded-xl mb-6 w-full"
           src={thumbnail}
           alt={filename}
@@ -174,7 +190,51 @@ export default function Preview() {
         <canvas
           ref={canvasRef}
           className="border border-slate-400 rounded-xl w-full h-64"
-        />
+        /> */}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h2 className="text-xl font-bold mb-2">Original Video</h2>
+
+            {/* <video
+              ref={videoRef}
+              controls
+              muted
+              preload="metadata"
+              className="rounded-xl w-full border border-slate-400"
+              src={thumbnail}
+              onLoadedData={() => setImageReady(true)}
+              onPlay={() => setImageReady((ready) => !ready)}
+              onTimeUpdate={() => setImageReady((ready) => !ready)}
+            /> */}
+            <video
+              key={thumbnail}
+              ref={videoRef}
+              controls
+              muted
+              preload="auto"
+              className="rounded-xl w-full  border border-slate-400"
+              onLoadedMetadata={() => {
+                console.log("video loaded:", videoRef.current.videoWidth, videoRef.current.videoHeight)
+                setImageReady(true)
+              }}
+              onError={() => {
+                console.log("video error", videoRef.current.error)
+              }}
+            >
+              <source src={thumbnail} type="video/mp4" />
+            </video>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold mb-2">Processed Preview</h2>
+
+            <canvas
+              ref={canvasRef}
+              className="border border-slate-400 rounded-xl w-full "
+            />
+          </div>
+        </div>
 
         <Link to="/videos"
           className="inline-block bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors">
