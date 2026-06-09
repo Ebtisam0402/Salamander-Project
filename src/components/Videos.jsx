@@ -31,6 +31,11 @@ export default function Videos() {
   return (
     <div className="min-h-screen bg-green-100 p-6">
       <h1 className="text-4xl font-bold text-blue-600 mb-6">Available Videos</h1>
+
+      {videos.length === 0 ? (
+      <p>No videos available.</p>
+      ) : (
+
       <ul className="flex flex-wrap gap-4">
         {videos.map((filename) => (
           <li key={filename}
@@ -44,7 +49,7 @@ export default function Videos() {
 
         ))}
       </ul>
-
+      )}
 
     </div>
   )
