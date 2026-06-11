@@ -1,31 +1,24 @@
 import { Link, useParams } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
-import {
-  getThumbnail,
-  submitProcessingJob,
-  getJobStatus
-} from '../api.js'
+import { getThumbnail } from '../api.js'
 
-// Create the Preview component
 export default function Preview() {
-  // Get the video filename from the URL
   const { filename } = useParams()
 
-  // Store the video URL
   const [thumbnail, setThumbnail] = useState("")
-  const [loading, setLoading] = useState(true) // Track if video is loading
-  const [error, setError] = useState("") // Store error message
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const [color, setColor] = useState("#000000") // Store selected target color
-  const [tolerance, setTolerance] = useState(50) // Store tolerance slider value
+  const [color, setColor] = useState("#000000")
+  const [tolerance, setTolerance] = useState(50)
 
-  const [jobId, setJobId] = useState(null)// Store backend processing job ID
-  const [jobStatus, setJobStatus] = useState(null) // Store job status result
+  const canvasRef = useRef(null)
 
-  const canvasRef = useRef(null) // Reference to the canvas element
+  // const imgRef = useRef(null)
+  // const [imageReady, setImageReady] = useState(false)
 
-  const videoRef = useRef(null) // Reference to the video element
-  const [imageReady, setImageReady] = useState(false) // Track when video is ready to draw
+  const videoRef = useRef(null)
+  const [imageReady, setImageReady] = useState(false)
 
   function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16)
@@ -35,111 +28,93 @@ export default function Preview() {
     return { r, g, b }
   }
 
-  useEffect(() => { // Run when filename changes
-    getThumbnail(filename) // Get video URL from API
+  useEffect(() => {
+    getThumbnail(filename)
       .then((url) => {
-        setThumbnail(url) // Save video URL
-        setLoading(false) // Stop loading
+        setThumbnail(url)
+        setLoading(false)
       })
-      .catch((err) => { // If error happens
+      .catch((err) => {
         //console.error(err)
-        setError(err.message) // Save error message
-        setLoading(false) // Stop loading
+        setError(err.message)
+        setLoading(false)
       })
 
-  }, [filename])// Re-run when filename changes
+  }, [filename])
+  // useEffect(() => {
+  //   if (!thumbnail) return
+  //   setImageReady(false)
+  //   const img = new Image()
+  //   img.crossOrigin = 'anonymous'
+  //   img.onload = () => {
+  //     imgRef.current = img
+  //     setImageReady(true)
+  //     // console.log('image loaded:', imgRef.current.naturalWidth, 'x', imgRef.current.naturalHeight)
+  //   }
+  //   img.src = thumbnail
+  // }, [thumbnail])
 
-
-  useEffect(() => { // Redraw canvas when video/settings change
+  useEffect(() => {
     // console.log('redrawing')
-    if (!imageReady) return // Stop if video is not ready
+    if (!imageReady) return
     //const img = imgRef.current
-    const img = videoRef.current // Get video element
-    const video = videoRef.current // Get canvas element
+    const img = videoRef.current
 
+    const video = videoRef.current
     const canvas = canvasRef.current
-    if (!img || !canvas) return // Stop if either is missing
+    if (!img || !canvas) return
 
-    if (!video.videoWidth || !video.videoHeight) return // Stop if video size is not ready
+    if (!video.videoWidth || !video.videoHeight) return
 
-    canvas.width = video.videoWidth // Get video element
-    canvas.height = video.videoHeight // Get canvas element
+    // canvas.width = img.naturalWidth
+    // canvas.height = img.naturalHeight
 
-    const ctx = canvas.getContext('2d') // Get canvas drawing tools
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height) // Draw current video frame
+    //canvas.width = img.videoWidth
+    //canvas.height = img.videoHeight
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     // const ctx = canvas.getContext('2d')
     // ctx.drawImage(img, 0, 0)
 
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height) // Read pixels
-    const px = data.data // Get pixel array
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const px = data.data
 
-    const targetR = parseInt(color.slice(1, 3), 16) // Convert selected color red value
-    const targetG = parseInt(color.slice(3, 5), 16) // Convert selected color green value
-    const targetB = parseInt(color.slice(5, 7), 16) // Convert selected color blue value
+    const targetR = parseInt(color.slice(1, 3), 16)
+    const targetG = parseInt(color.slice(3, 5), 16)
+    const targetB = parseInt(color.slice(5, 7), 16)
 
-    let sumX = 0 // Add up detected pixel x positions
-    let sumY = 0 // Add up detected pixel y positions
-    let count = 0 // Count detected pixels
+    for (let i = 0; i < px.length; i += 4) {
 
-    for (let i = 0; i < px.length; i += 4) { // Loop through pixels, 4 values at a time
-      const pixelIndex = i / 4 // Convert array index to pixel number
-      const x = pixelIndex % canvas.width // Find x position of pixel
-      const y = Math.floor(pixelIndex / canvas.width) // Find y position of pixel
+      const red = px[i]
+      const green = px[i + 1]
+      const blue = px[i + 2]
 
-      const red = px[i] // Current pixel red value
-      const green = px[i + 1] // Current pixel green value
-      const blue = px[i + 2] // Current pixel blue value
+      const redDiff = Math.abs(red - targetR)
+      const greenDiff = Math.abs(green - targetG)
+      const blueDiff = Math.abs(blue - targetB)
 
-      const redDiff = Math.abs(red - targetR) // Difference from target red
-      const greenDiff = Math.abs(green - targetG) // Difference from target green
-      const blueDiff = Math.abs(blue - targetB) // Difference from target blue
+      const distance = redDiff + greenDiff + blueDiff
 
-      const distance = redDiff + greenDiff + blueDiff // Total color difference
-
-      if (distance <= tolerance) {  // If pixel is close enough to selected color
-        px[i] = 0 // Make red channel black
-        px[i + 1] = 0 // Make green channel black
-        px[i + 2] = 0 // Make blue channel black
-
-        sumX += x // Add x to centroid total
-        sumY += y // Add y to centroid total
-        count++ // Count this detected pixel
-      } else { // If pixel is not close to selected color
-        px[i] = 255 // Make red channel white
-        px[i + 1] = 255 // Make green channel white
-        px[i + 2] = 255  // Make blue channel white
+      if (distance <= tolerance) {
+        px[i] = 0
+        px[i + 1] = 0
+        px[i + 2] = 0
+      } else {
+        px[i] = 255
+        px[i + 1] = 255
+        px[i + 2] = 255
       }
     }
+    ctx.putImageData(data, 0, 0)
 
-    ctx.putImageData(data, 0, 0)  // Put edited pixels back on canvas
 
-    if (count > 0) { // Only draw dot if pixels were detected
-      const centroidX = sumX / count // Calculate center x
-      const centroidY = sumY / count // Calculate center y
 
-      ctx.beginPath() // Start drawing dot
-      ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2) // Draw circle
-      ctx.fillStyle = 'red' // Make dot red
-      ctx.fill() // Fill the circle
-    }
-
-  }, [imageReady, color, tolerance]) // Re-run when video or settings change
-
-  useEffect(() => { // Poll backend job status
-    if (!jobId) return // Stop if no job ID yet
-
-    const interval = setInterval(async () => { // Check every 2 seconds
-      const status = await getJobStatus(jobId) // Ask backend for status
-      setJobStatus(status) // Save status in state
-
-      if (status.status === "done") { // If finished
-        clearInterval(interval) // Stop polling
-      }
-    }, 2000)  // Poll every 2 seconds
-
-    return () => clearInterval(interval) // Clean up interval
-  }, [jobId]) // Re-run when job ID changes
+  }, [imageReady, color, tolerance])
 
 
   if (error) {
@@ -168,21 +143,6 @@ export default function Preview() {
 
   }
 
-  async function handleProcessVideo() {
-    try {
-      const job = await submitProcessingJob(
-        filename,
-        color,
-        tolerance
-      )
-
-      setJobId(job.jobId)
-      setJobStatus({ status: "processing" })
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-6xl w-full">
@@ -194,7 +154,7 @@ export default function Preview() {
             <label className="block font-semibold mb-2">
               Pick Color
             </label>
-            {/* <p>{thumbnail}</p> */}
+            <p>{thumbnail}</p>
 
             <input
               type="color"
@@ -221,16 +181,16 @@ export default function Preview() {
         </div>
 
 
-        {/* <img
-          className="rounded-xl mb-6 w-full"
+       {/* <img
+          className="rounded-xl mb-6 w-full border border-slate-400"
           src={thumbnail}
-          alt={filename}
-        />
+           alt={`Thumbnail for ${filename}`}
+          /> */}
 
-        <canvas
+        {/* <canvas
           ref={canvasRef}
           className="border border-slate-400 rounded-xl w-full h-64"
-        /> */}
+        /> */} 
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
@@ -279,31 +239,6 @@ export default function Preview() {
         <Link to="/videos"
           className="inline-block bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition-colors">
           Back to videos</Link>
-
-        <button
-          type="button"
-          onClick={handleProcessVideo}
-          className="bg-green-600 text-white px-5 py-3 rounded-lg mr-4"
-        >
-          Process Video With These Settings
-        </button>
-
-        {jobStatus && (
-          <div>
-            <p>Status: {jobStatus.status}</p>
-
-            {jobStatus.status === "done" && (
-              <a
-                href={jobStatus.resultUrl}
-                download
-                className="text-blue-600 underline"
-              >
-                Download CSV
-              </a>
-
-            )}
-          </div>
-        )}
       </div>
     </div>
   )
