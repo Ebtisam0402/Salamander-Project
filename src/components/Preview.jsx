@@ -131,7 +131,7 @@ export default function Preview() {
   }
 
   function handleToleranceChange(e) {
-    setTolerance(e.target.value)
+    setTolerance(Number(e.target.value))
     console.log("Tolerance:", e.target.value)
   }
 
