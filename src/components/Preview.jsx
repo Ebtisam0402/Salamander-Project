@@ -194,7 +194,7 @@ export default function Preview() {
             <label className="block font-semibold mb-2">
               Pick Color
             </label>
-            <p>{thumbnail}</p>
+            {/* <p>{thumbnail}</p> */}
 
             <input
               type="color"
