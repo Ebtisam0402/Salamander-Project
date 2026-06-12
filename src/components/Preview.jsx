@@ -18,6 +18,7 @@ export default function Preview() {
 
   const [jobId, setJobId] = useState(null)
   const [jobStatus, setJobStatus] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const canvasRef = useRef(null)
   const videoRef = useRef(null)
@@ -208,7 +209,7 @@ if (largestGroup.length > 0) {
       const status = await getJobStatus(jobId)
       setJobStatus(status)
 
-      if (status.status === "done") {
+      if (status.status === "done" || status.status === "error") {
         clearInterval(interval)
       }
     }, 2000)
@@ -228,13 +229,18 @@ if (largestGroup.length > 0) {
 
   async function handleProcessVideo() {
     try {
+          setSubmitting(true)
+          setError("")
+          setJobStatus(null)
       const job = await submitProcessingJob(filename, color, tolerance)
 
       setJobId(job.jobId)
       setJobStatus({ status: "processing" })
     } catch (err) {
       setError(err.message)
-    }
+    }finally {
+      setSubmitting(false)
+  }
   }
 
   if (loading) {
@@ -344,9 +350,11 @@ if (largestGroup.length > 0) {
           <button
             type="button"
             onClick={handleProcessVideo}
-            className="bg-green-600 text-white px-5 py-3 rounded-lg"
+            disabled={submitting}
+            // className="bg-green-600 text-white px-5 py-3 rounded-lg"
+            className="bg-green-600 text-white px-5 py-3 rounded-lg disabled:bg-gray-400"
           >
-            Process Video With These Settings
+            {submitting ? "Submitting..." : "Process Video With These Settings"}
           </button>
         </div>
 
