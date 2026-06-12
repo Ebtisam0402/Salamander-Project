@@ -61,37 +61,49 @@ export default function Preview() {
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
     const px = data.data
 
+    
+
     const targetR = parseInt(color.slice(1, 3), 16)
     const targetG = parseInt(color.slice(3, 5), 16)
     const targetB = parseInt(color.slice(5, 7), 16)
 
-    let sumX = 0
-    let sumY = 0
-    let count = 0
+    // let sumX = 0
+    // let sumY = 0
+    // let count = 0
 
     for (let i = 0; i < px.length; i += 4) {
-      const pixelIndex = i / 4
-      const x = pixelIndex % canvas.width
-      const y = Math.floor(pixelIndex / canvas.width)
+      // const pixelIndex = i / 4
+      // const x = pixelIndex % canvas.width
+      // const y = Math.floor(pixelIndex / canvas.width)
 
       const red = px[i]
       const green = px[i + 1]
       const blue = px[i + 2]
 
-      const redDiff = Math.abs(red - targetR)
-      const greenDiff = Math.abs(green - targetG)
-      const blueDiff = Math.abs(blue - targetB)
+      // const redDiff = Math.abs(red - targetR)
+      // const greenDiff = Math.abs(green - targetG)
+      // const blueDiff = Math.abs(blue - targetB)
 
-      const distance = redDiff + greenDiff + blueDiff
+      // const distance = redDiff + greenDiff + blueDiff
+
+      const redDiff = red - targetR
+      const greenDiff = green - targetG
+      const blueDiff = blue - targetB
+
+      const distance = Math.sqrt(
+        redDiff * redDiff +
+        greenDiff * greenDiff +
+        blueDiff * blueDiff
+)
 
       if (distance <= tolerance) {
         px[i] = 0
         px[i + 1] = 0
         px[i + 2] = 0
 
-        sumX += x
-        sumY += y
-        count++
+        // sumX += x
+        // sumY += y
+        // count++
       } else {
         px[i] = 255
         px[i + 1] = 255
@@ -101,15 +113,92 @@ export default function Preview() {
 
     ctx.putImageData(data, 0, 0)
 
-    if (count > 0) {
-      const centroidX = sumX / count
-      const centroidY = sumY / count
+    // After binarizing pixels, find largest connected black region
+const visited = new Set()
+let largestGroup = []
 
-      ctx.beginPath()
-      ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2)
-      ctx.fillStyle = 'red'
-      ctx.fill()
+function key(x, y) {
+  return `${x},${y}`
+}
+
+function isBlack(x, y) {
+  const index = (y * canvas.width + x) * 4
+  return px[index] === 0 && px[index + 1] === 0 && px[index + 2] === 0
+}
+
+function bfs(startX, startY) {
+  const group = []
+  const queue = [[startX, startY]]
+  visited.add(key(startX, startY))
+
+  while (queue.length > 0) {
+    const [x, y] = queue.shift()
+    group.push([x, y])
+
+    const neighbors = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1]
+    ]
+
+    for (const [nx, ny] of neighbors) {
+      if (
+        nx >= 0 &&
+        nx < canvas.width &&
+        ny >= 0 &&
+        ny < canvas.height &&
+        !visited.has(key(nx, ny)) &&
+        isBlack(nx, ny)
+      ) {
+        visited.add(key(nx, ny))
+        queue.push([nx, ny])
+      }
     }
+  }
+
+  return group
+}
+
+for (let y = 0; y < canvas.height; y++) {
+  for (let x = 0; x < canvas.width; x++) {
+    if (!visited.has(key(x, y)) && isBlack(x, y)) {
+      const group = bfs(x, y)
+
+      if (group.length > largestGroup.length) {
+        largestGroup = group
+      }
+    }
+  }
+}
+
+if (largestGroup.length > 0) {
+  let sumX = 0
+  let sumY = 0
+
+  for (const [x, y] of largestGroup) {
+    sumX += x
+    sumY += y
+  }
+
+  const centroidX = sumX / largestGroup.length
+  const centroidY = sumY / largestGroup.length
+
+  ctx.beginPath()
+  ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2)
+  ctx.fillStyle = 'red'
+  ctx.fill()
+}
+
+    // if (count > 0) {
+    //   const centroidX = sumX / count
+    //   const centroidY = sumY / count
+
+    //   ctx.beginPath()
+    //   ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2)
+    //   ctx.fillStyle = 'red'
+    //   ctx.fill()
+    // }
   }, [imageReady, color, tolerance])
 
   useEffect(() => {
@@ -190,7 +279,7 @@ export default function Preview() {
             <input
               type="range"
               min="0"
-              max="765"
+              max="442"
               value={tolerance}
               onChange={handleToleranceChange}
               className="w-full"
