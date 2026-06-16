@@ -212,10 +212,12 @@ export default function Preview() {
       setJobStatus(status)
 
 
-      if (status.status == "done" && status.resultUrl) {
-        loadCsvData(status.resultUrl)
+      if (status.status === "done" && status.resultUrl) {
+        await loadCsvData(status.resultUrl)
+        clearInterval(interval)
       }
-      if (status.status === "done" || status.status === "error") {
+
+      if (status.status === "error") {
         clearInterval(interval)
       }
 
