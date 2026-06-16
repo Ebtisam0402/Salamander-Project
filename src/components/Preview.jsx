@@ -9,6 +9,8 @@ import {
 export default function Preview() {
   const { filename } = useParams()
 
+  const [csvData, setCsvData] = useState([])
+
   const [thumbnail, setThumbnail] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -62,7 +64,7 @@ export default function Preview() {
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
     const px = data.data
 
-    
+
 
     const targetR = parseInt(color.slice(1, 3), 16)
     const targetG = parseInt(color.slice(3, 5), 16)
@@ -95,7 +97,7 @@ export default function Preview() {
         redDiff * redDiff +
         greenDiff * greenDiff +
         blueDiff * blueDiff
-)
+      )
 
       if (distance <= tolerance) {
         px[i] = 0
@@ -115,81 +117,81 @@ export default function Preview() {
     ctx.putImageData(data, 0, 0)
 
     // After binarizing pixels, find largest connected black region
-const visited = new Set()
-let largestGroup = []
+    const visited = new Set()
+    let largestGroup = []
 
-function key(x, y) {
-  return `${x},${y}`
-}
+    function key(x, y) {
+      return `${x},${y}`
+    }
 
-function isBlack(x, y) {
-  const index = (y * canvas.width + x) * 4
-  return px[index] === 0 && px[index + 1] === 0 && px[index + 2] === 0
-}
+    function isBlack(x, y) {
+      const index = (y * canvas.width + x) * 4
+      return px[index] === 0 && px[index + 1] === 0 && px[index + 2] === 0
+    }
 
-function bfs(startX, startY) {
-  const group = []
-  const queue = [[startX, startY]]
-  visited.add(key(startX, startY))
+    function bfs(startX, startY) {
+      const group = []
+      const queue = [[startX, startY]]
+      visited.add(key(startX, startY))
 
-  while (queue.length > 0) {
-    const [x, y] = queue.shift()
-    group.push([x, y])
+      while (queue.length > 0) {
+        const [x, y] = queue.shift()
+        group.push([x, y])
 
-    const neighbors = [
-      [x + 1, y],
-      [x - 1, y],
-      [x, y + 1],
-      [x, y - 1]
-    ]
+        const neighbors = [
+          [x + 1, y],
+          [x - 1, y],
+          [x, y + 1],
+          [x, y - 1]
+        ]
 
-    for (const [nx, ny] of neighbors) {
-      if (
-        nx >= 0 &&
-        nx < canvas.width &&
-        ny >= 0 &&
-        ny < canvas.height &&
-        !visited.has(key(nx, ny)) &&
-        isBlack(nx, ny)
-      ) {
-        visited.add(key(nx, ny))
-        queue.push([nx, ny])
+        for (const [nx, ny] of neighbors) {
+          if (
+            nx >= 0 &&
+            nx < canvas.width &&
+            ny >= 0 &&
+            ny < canvas.height &&
+            !visited.has(key(nx, ny)) &&
+            isBlack(nx, ny)
+          ) {
+            visited.add(key(nx, ny))
+            queue.push([nx, ny])
+          }
+        }
+      }
+
+      return group
+    }
+
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        if (!visited.has(key(x, y)) && isBlack(x, y)) {
+          const group = bfs(x, y)
+
+          if (group.length > largestGroup.length) {
+            largestGroup = group
+          }
+        }
       }
     }
-  }
 
-  return group
-}
+    if (largestGroup.length > 0) {
+      let sumX = 0
+      let sumY = 0
 
-for (let y = 0; y < canvas.height; y++) {
-  for (let x = 0; x < canvas.width; x++) {
-    if (!visited.has(key(x, y)) && isBlack(x, y)) {
-      const group = bfs(x, y)
-
-      if (group.length > largestGroup.length) {
-        largestGroup = group
+      for (const [x, y] of largestGroup) {
+        sumX += x
+        sumY += y
       }
+
+      const centroidX = sumX / largestGroup.length
+      const centroidY = sumY / largestGroup.length
+
+      ctx.beginPath()
+      ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2)
+      ctx.fillStyle = 'red'
+      ctx.fill()
     }
-  }
-}
-
-if (largestGroup.length > 0) {
-  let sumX = 0
-  let sumY = 0
-
-  for (const [x, y] of largestGroup) {
-    sumX += x
-    sumY += y
-  }
-
-  const centroidX = sumX / largestGroup.length
-  const centroidY = sumY / largestGroup.length
-
-  ctx.beginPath()
-  ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2)
-  ctx.fillStyle = 'red'
-  ctx.fill()
-}
 
     // if (count > 0) {
     //   const centroidX = sumX / count
@@ -209,9 +211,14 @@ if (largestGroup.length > 0) {
       const status = await getJobStatus(jobId)
       setJobStatus(status)
 
+
+      if (status.status == "done" && status.resultUrl) {
+        loadCsvData(status.resultUrl)
+      }
       if (status.status === "done" || status.status === "error") {
         clearInterval(interval)
       }
+
     }, 2000)
 
     return () => clearInterval(interval)
@@ -229,18 +236,18 @@ if (largestGroup.length > 0) {
 
   async function handleProcessVideo() {
     try {
-          setSubmitting(true)
-          setError("")
-          setJobStatus(null)
+      setSubmitting(true)
+      setError("")
+      setJobStatus(null)
       const job = await submitProcessingJob(filename, color, tolerance)
 
       setJobId(job.jobId)
       setJobStatus({ status: "processing" })
     } catch (err) {
       setError(err.message)
-    }finally {
+    } finally {
       setSubmitting(false)
-  }
+    }
   }
 
   if (loading) {
@@ -253,6 +260,29 @@ if (largestGroup.length > 0) {
         Could not load thumbnail: {error}
       </p>
     )
+  }
+
+  async function loadCsvData(resultUrl) {
+    const res = await fetch(resultUrl)
+    if (!res.ok) {
+      throw new Error("Could not load CSV data")
+    }
+
+    const text = await res.text()
+
+    const lines = text.trim().split("\n").slice(1)
+
+    const points = lines.map((line) => {
+      const [seconds, x, y] = line.split(",")
+
+      return {
+        seconds: Number(seconds),
+        x: Number(x),
+        y: Number(y)
+      }
+    })
+
+    setCsvData(points)
   }
 
   return (
@@ -298,6 +328,8 @@ if (largestGroup.length > 0) {
           src={thumbnail}
           alt={`Thumbnail for ${filename}`}
         /> */}
+
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
