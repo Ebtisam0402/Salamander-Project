@@ -1,22 +1,144 @@
-# Partners name: 
-Azeb & Ebtisam
+# Salamander Tracking Project
 
+## Team Members
 
-# React + Vite
+* Ebtisam Abdelkerim
+* Azeb Tesfay
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Overview
 
-Currently, two official plugins are available:
+This application tracks salamander movement in videos. Users can select a target color and tolerance, preview the binarized result, detect the largest connected region, generate a CSV file of centroid positions, and view a movement graph.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technologies
 
-## React Compiler
+* React
+* React Router
+* Tailwind CSS
+* Recharts
+* Node.js / Express
+* Java / Maven / JCodec
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Required Software
 
-## Expanding the ESLint configuration
+Install the following before running the project:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Node.js
 
+```bash
+node -v
+npm -v
+```
 
+### Java 21
+
+```bash
+java --version
+```
+
+### Maven
+
+```bash
+mvn -v
+```
+
+### FFmpeg (macOS)
+
+```bash
+brew install ffmpeg
+ffmpeg -version
+```
+
+## Setup
+
+### Frontend
+
+```bash
+npm install
+npm install react-router-dom recharts
+npm run dev
+```
+
+### Backend
+
+```bash
+cd server
+npm install
+node index.js
+```
+
+Create a `.env` file:
+
+```env
+VIDEO_DIR=../videos
+OUTPUT_DIR=../processor/sampleOutput
+PROCESSOR_JAR=../processor/target/centroid-finder-1.0-SNAPSHOT-jar-with-dependencies.jar
+PORT=3000
+```
+
+### Java Processor
+
+```bash
+cd processor
+mvn clean package
+```
+
+## Running the Project
+
+### Terminal 1
+
+```bash
+cd processor
+mvn clean package
+```
+
+### Terminal 2
+
+```bash
+cd server
+node index.js
+```
+
+### Terminal 3
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+## Color Palette
+
+* Blue: `#2563EB`
+* White: `#FFFFFF`
+* Slate Background: `#F1F5F9`
+* Slate Cards: `#E2E8F0`
+
+## Custom Feature: Movement Graph
+
+After processing is complete, the application loads the generated CSV and displays a graph of the salamander's X and Y positions over time. This allows users to visually analyze movement instead of reading raw CSV values.
+
+### How to Use
+
+1. Select a video.
+2. Choose a target color and tolerance.
+3. Preview the binarized image.
+4. Click **Process Video With These Settings**.
+5. Wait for processing to finish.
+6. Download the CSV.
+7. View the movement graph.
+
+## Screenshots
+
+(Optional)
+
+```markdown
+![Home Page](screenshots/homepage.png)
+
+![Video Preview](screenshots/preview.png)
+
+![Movement Graph](screenshots/graph.png)
+```
