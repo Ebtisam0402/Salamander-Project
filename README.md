@@ -133,12 +133,8 @@ After processing is complete, the application loads the generated CSV and displa
 
 ## Screenshots
 
-(Optional)
-
-```markdown
 ![Home Page](screenshots/homepage.png)
 
 ![Video Preview](screenshots/preview.png)
 
 ![Movement Graph](screenshots/graph.png)
-```
