@@ -135,6 +135,8 @@ After processing is complete, the application loads the generated CSV and displa
 
 ![Home Page](screenshots/homepage.png)
 
+![Videos List Page](screenshots/videos.png)
+
 ![Video Preview](screenshots/preview.png)
 
 ![Movement Graph](screenshots/graph.png)
