@@ -28,7 +28,7 @@ export default function Header() {
           {' | '}
           <Link to="/videos" className="hover:text-yellow-300 transition-colors">Videos</Link>
           {' | '}
-          <Link to="/processing" className="hover:text-yellow-300 transition-colors">Processing</Link>
+          <Link to="/processing" className="hover:text-yellow-300 transition-colors">Processing Overview</Link>
         </nav>
 
       </div>

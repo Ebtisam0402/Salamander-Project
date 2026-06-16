@@ -5,6 +5,15 @@ import {
   submitProcessingJob,
   getJobStatus
 } from '../api.js'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts'
 
 export default function Preview() {
   const { filename } = useParams()
@@ -241,6 +250,7 @@ export default function Preview() {
       setSubmitting(true)
       setError("")
       setJobStatus(null)
+      setCsvData([])
       const job = await submitProcessingJob(filename, color, tolerance)
 
       setJobId(job.jobId)
@@ -405,6 +415,40 @@ export default function Preview() {
                 Download CSV
               </a>
             )}
+
+              {csvData.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">
+              Salamander Movement Graph
+            </h2>
+
+            <LineChart
+              width={700}
+              height={350}
+              data={csvData}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="seconds" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+
+              <Line
+                type="monotone"
+                dataKey="x"
+                name="X Position"
+                dot={false}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="y"
+                name="Y Position"
+                dot={false}
+              />
+            </LineChart>
+    </div>
+  )}
           </div>
         )}
       </div>
