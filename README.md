@@ -2,8 +2,8 @@
 
 ## Team Members
 
-* Ebtisam Abdelkerim
-* Azeb Tesfay
+- Ebtisam Abdelkerim
+- Azeb Tesfay
 
 ## Project Overview
 
@@ -11,12 +11,12 @@ This application tracks salamander movement in videos. Users can select a target
 
 ## Technologies
 
-* React
-* React Router
-* Tailwind CSS
-* Recharts
-* Node.js / Express
-* Java / Maven / JCodec
+- React
+- React Router
+- Tailwind CSS
+- Recharts
+- Node.js / Express
+- Java / Maven / JCodec
 
 ## Required Software
 
@@ -112,10 +112,10 @@ http://localhost:5173
 
 ## Color Palette
 
-* Blue: `#2563EB`
-* White: `#FFFFFF`
-* Slate Background: `#F1F5F9`
-* Slate Cards: `#E2E8F0`
+- Blue: `#2563EB`
+- White: `#FFFFFF`
+- Slate Background: `#F1F5F9`
+- Slate Cards: `#E2E8F0`
 
 ## Custom Feature: Movement Graph
 

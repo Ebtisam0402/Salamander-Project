@@ -16,7 +16,7 @@
 
 export default function Processing() {
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-green-50 flex items-center justify-center p-6">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-4xl w-full">
         <h1 className="text-4xl font-bold text-blue-700 mb-6">
           Video Processing Overview
@@ -56,7 +56,7 @@ export default function Processing() {
           </p>
 
           <pre className="bg-white p-4 rounded-lg overflow-auto">
-{`seconds,x,y
+            {`seconds,x,y
 0.0,190,430
 1.0,210,420
 2.0,195,428`}

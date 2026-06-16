@@ -298,7 +298,7 @@ export default function Preview() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center">
+    <div className="min-h-screen bg-green-50 p-6 flex items-center justify-center">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-6xl w-full">
         <h1 className="text-4xl font-bold text-blue-700 mb-4">
           Preview: {filename}
@@ -416,39 +416,39 @@ export default function Preview() {
               </a>
             )}
 
-              {csvData.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">
-              Salamander Movement Graph
-            </h2>
+            {csvData.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">
+                  Salamander Movement Graph
+                </h2>
 
-            <LineChart
-              width={700}
-              height={350}
-              data={csvData}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="seconds" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+                <LineChart
+                  width={700}
+                  height={350}
+                  data={csvData}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="seconds" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
 
-              <Line
-                type="monotone"
-                dataKey="x"
-                name="X Position"
-                dot={false}
-              />
+                  <Line
+                    type="monotone"
+                    dataKey="x"
+                    name="X Position"
+                    dot={false}
+                  />
 
-              <Line
-                type="monotone"
-                dataKey="y"
-                name="Y Position"
-                dot={false}
-              />
-            </LineChart>
-    </div>
-  )}
+                  <Line
+                    type="monotone"
+                    dataKey="y"
+                    name="Y Position"
+                    dot={false}
+                  />
+                </LineChart>
+              </div>
+            )}
           </div>
         )}
       </div>
