@@ -326,7 +326,7 @@ export default function Preview() {
   // =====================================================
   // LOAD CSV DATA
   // Downloads the generated CSV file and converts
-  // seconds, x, y rows into JavaScript objects.
+  // seconds, x, y rows into JavaScript objects(graph data).
   // =====================================================
   async function loadCsvData(resultUrl) {
     const res = await fetch(resultUrl)
