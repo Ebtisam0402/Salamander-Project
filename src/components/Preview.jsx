@@ -15,9 +15,20 @@ import {
   Legend
 } from 'recharts'
 
+// =====================================================
+// PREVIEW COMPONENT
+// Main page for viewing a selected video,
+// tuning detection settings, processing the video,
+// and showing CSV/movement graph results.
+// =====================================================
 export default function Preview() {
   const { filename } = useParams()
 
+  // =====================================================
+  // COMPONENT STATE
+  // Stores video information, processing settings,
+  // job status, CSV data, and UI state.
+  // =====================================================
   const [csvData, setCsvData] = useState([])
 
   const [thumbnail, setThumbnail] = useState("")
@@ -31,10 +42,18 @@ export default function Preview() {
   const [jobStatus, setJobStatus] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // =====================================================
+  // REFS
+  // References to the canvas and video elements.
+  // =====================================================
   const canvasRef = useRef(null)
   const videoRef = useRef(null)
   const [imageReady, setImageReady] = useState(false)
 
+  // =====================================================
+  // HELPER FUNCTION
+  // Converts a hex color (#RRGGBB) into RGB values.
+  // =====================================================
   function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16)
     const g = parseInt(hex.slice(3, 5), 16)
@@ -43,6 +62,11 @@ export default function Preview() {
     return { r, g, b }
   }
 
+  // =====================================================
+  // LOAD VIDEO URL
+  // Runs when the selected filename changes.
+  // Requests the video URL from the backend.
+  // =====================================================
   useEffect(() => {
     getThumbnail(filename)
       .then((url) => {
@@ -55,6 +79,13 @@ export default function Preview() {
       })
   }, [filename])
 
+  // =====================================================
+  // LIVE VIDEO PROCESSING
+  // Draws the current video frame onto the canvas,
+  // converts it into black and white,
+  // finds the largest connected region,
+  // and draws the centroid dot.
+  // =====================================================
   useEffect(() => {
     if (!imageReady) return
 
@@ -64,40 +95,35 @@ export default function Preview() {
     if (!video || !canvas) return
     if (!video.videoWidth || !video.videoHeight) return
 
+    // Copy video size to canvas size.
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
 
+    // Draw current video frame onto canvas.
     const ctx = canvas.getContext('2d')
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
+    // Read all pixels from the canvas.
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
     const px = data.data
 
-
-
+    // Convert selected target color into RGB values.
     const targetR = parseInt(color.slice(1, 3), 16)
     const targetG = parseInt(color.slice(3, 5), 16)
     const targetB = parseInt(color.slice(5, 7), 16)
 
-    // let sumX = 0
-    // let sumY = 0
-    // let count = 0
-
+    // =====================================================
+    // BINARIZATION ALGORITHM
+    // Compare every pixel to the selected color.
+    // Matching pixels become black.
+    // Non-matching pixels become white.
+    // =====================================================
     for (let i = 0; i < px.length; i += 4) {
-      // const pixelIndex = i / 4
-      // const x = pixelIndex % canvas.width
-      // const y = Math.floor(pixelIndex / canvas.width)
-
       const red = px[i]
       const green = px[i + 1]
       const blue = px[i + 2]
 
-      // const redDiff = Math.abs(red - targetR)
-      // const greenDiff = Math.abs(green - targetG)
-      // const blueDiff = Math.abs(blue - targetB)
-
-      // const distance = redDiff + greenDiff + blueDiff
-
+      // Euclidean color distance.
       const redDiff = red - targetR
       const greenDiff = green - targetG
       const blueDiff = blue - targetB
@@ -112,10 +138,6 @@ export default function Preview() {
         px[i] = 0
         px[i + 1] = 0
         px[i + 2] = 0
-
-        // sumX += x
-        // sumY += y
-        // count++
       } else {
         px[i] = 255
         px[i + 1] = 255
@@ -123,9 +145,14 @@ export default function Preview() {
       }
     }
 
+    // Put the edited black-and-white pixels back on canvas.
     ctx.putImageData(data, 0, 0)
 
-    // After binarizing pixels, find largest connected black region
+    // =====================================================
+    // LARGEST CONNECTED REGION DETECTION
+    // Finds the largest connected black area,
+    // which represents the detected salamander region.
+    // =====================================================
     const visited = new Set()
     let largestGroup = []
 
@@ -138,6 +165,7 @@ export default function Preview() {
       return px[index] === 0 && px[index + 1] === 0 && px[index + 2] === 0
     }
 
+    // Breadth-first search to collect connected black pixels.
     function bfs(startX, startY) {
       const group = []
       const queue = [[startX, startY]]
@@ -172,6 +200,7 @@ export default function Preview() {
       return group
     }
 
+    // Scan the whole canvas and keep the largest black region.
     for (let y = 0; y < canvas.height; y++) {
       for (let x = 0; x < canvas.width; x++) {
         if (!visited.has(key(x, y)) && isBlack(x, y)) {
@@ -184,6 +213,11 @@ export default function Preview() {
       }
     }
 
+    // =====================================================
+    // CENTROID DOT
+    // Calculates the center of the largest detected region
+    // and draws a red dot on the processed preview.
+    // =====================================================
     if (largestGroup.length > 0) {
       let sumX = 0
       let sumY = 0
@@ -201,25 +235,19 @@ export default function Preview() {
       ctx.fillStyle = 'red'
       ctx.fill()
     }
-
-    // if (count > 0) {
-    //   const centroidX = sumX / count
-    //   const centroidY = sumY / count
-
-    //   ctx.beginPath()
-    //   ctx.arc(centroidX, centroidY, 8, 0, Math.PI * 2)
-    //   ctx.fillStyle = 'red'
-    //   ctx.fill()
-    // }
   }, [imageReady, color, tolerance])
 
+  // =====================================================
+  // JOB STATUS POLLING
+  // Checks the backend every 2 seconds until
+  // the Java video processing job is done.
+  // =====================================================
   useEffect(() => {
     if (!jobId) return
 
     const interval = setInterval(async () => {
       const status = await getJobStatus(jobId)
       setJobStatus(status)
-
 
       if (status.status === "done" && status.resultUrl) {
         await loadCsvData(status.resultUrl)
@@ -229,28 +257,41 @@ export default function Preview() {
       if (status.status === "error") {
         clearInterval(interval)
       }
-
     }, 2000)
 
     return () => clearInterval(interval)
   }, [jobId])
 
+  // =====================================================
+  // COLOR PICKER HANDLER
+  // Updates selected target color.
+  // =====================================================
   function handleColorChange(e) {
     setColor(e.target.value)
     console.log("Color:", e.target.value)
   }
 
+  // =====================================================
+  // TOLERANCE SLIDER HANDLER
+  // Updates allowed color difference.
+  // =====================================================
   function handleToleranceChange(e) {
     setTolerance(Number(e.target.value))
     console.log("Tolerance:", e.target.value)
   }
 
+  // =====================================================
+  // PROCESS VIDEO
+  // Sends filename, color, and tolerance to the backend.
+  // The backend starts the Java centroid finder.
+  // =====================================================
   async function handleProcessVideo() {
     try {
       setSubmitting(true)
       setError("")
       setJobStatus(null)
       setCsvData([])
+
       const job = await submitProcessingJob(filename, color, tolerance)
 
       setJobId(job.jobId)
@@ -262,10 +303,18 @@ export default function Preview() {
     }
   }
 
+  // =====================================================
+  // LOADING STATE
+  // Shows while video information is loading.
+  // =====================================================
   if (loading) {
     return <p>Loading thumbnail...</p>
   }
 
+  // =====================================================
+  // ERROR STATE
+  // Shows if video loading or processing fails.
+  // =====================================================
   if (error) {
     return (
       <p className="text-red-600 text-xl font-bold">
@@ -274,14 +323,19 @@ export default function Preview() {
     )
   }
 
+  // =====================================================
+  // LOAD CSV DATA
+  // Downloads the generated CSV file and converts
+  // seconds, x, y rows into JavaScript objects.
+  // =====================================================
   async function loadCsvData(resultUrl) {
     const res = await fetch(resultUrl)
+
     if (!res.ok) {
       throw new Error("Could not load CSV data")
     }
 
     const text = await res.text()
-
     const lines = text.trim().split("\n").slice(1)
 
     const points = lines.map((line) => {
@@ -297,6 +351,11 @@ export default function Preview() {
     setCsvData(points)
   }
 
+  // =====================================================
+  // MAIN PAGE UI
+  // Shows controls, video, processed preview,
+  // processing status, CSV download, and graph.
+  // =====================================================
   return (
     <div className="min-h-screen bg-green-50 p-6 flex items-center justify-center">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-6xl w-full">
@@ -304,13 +363,12 @@ export default function Preview() {
           Preview: {filename}
         </h1>
 
+        {/* Tuning controls */}
         <div className="mb-6 flex flex-col gap-4">
           <div>
             <label className="block font-semibold mb-2">
               Pick Color
             </label>
-
-            {/* <p>{thumbnail}</p> */}
 
             <input
               type="color"
@@ -335,14 +393,7 @@ export default function Preview() {
           </div>
         </div>
 
-        {/* <img
-          className="rounded-xl mb-6 w-full border border-slate-400"
-          src={thumbnail}
-          alt={`Thumbnail for ${filename}`}
-        /> */}
-
-
-
+        {/* Video and processed preview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <h2 className="text-xl font-bold mb-2">Original Video</h2>
@@ -383,6 +434,7 @@ export default function Preview() {
           </div>
         </div>
 
+        {/* Navigation and process button */}
         <div className="flex gap-4 items-center">
           <Link
             to="/videos"
@@ -395,13 +447,13 @@ export default function Preview() {
             type="button"
             onClick={handleProcessVideo}
             disabled={submitting}
-            // className="bg-green-600 text-white px-5 py-3 rounded-lg"
             className="bg-green-600 text-white px-5 py-3 rounded-lg disabled:bg-gray-400"
           >
             {submitting ? "Submitting..." : "Process Video With These Settings"}
           </button>
         </div>
 
+        {/* Processing results */}
         {jobStatus && (
           <div className="mt-6">
             <p>Status: {jobStatus.status}</p>
@@ -416,6 +468,7 @@ export default function Preview() {
               </a>
             )}
 
+            {/* Custom feature: movement graph */}
             {csvData.length > 0 && (
               <div className="mt-8">
                 <h2 className="text-2xl font-bold mb-4">
